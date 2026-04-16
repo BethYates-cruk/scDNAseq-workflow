@@ -170,3 +170,63 @@ run_slurm.sh
 .keras*
 .snakemake*
 .toy_slurm*
+On branch fmlab/local-modifications
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	config/SLX-24489.tsv
+	config/SLX-25392.tsv
+	config/SLX-26395.tsv
+	config/SLX-26395_100.tsv
+	config/SLX-26397.tsv
+	config/SLX-26397_100.tsv
+	config/SLX-27320.tsv
+	config/SLX-27320_100.tsv
+	config/SLX-27321.tsv
+	config/SLX-27321_100.tsv
+	config/SLX-27322.tsv
+	config/SLX-27322_100.tsv
+	config/SLX-27323.tsv
+	config/SLX-27323_100.tsv
+	config/SLX-27480.tsv
+	config/SLX-27480_100.tsv
+	config/SLX-27481.tsv
+	config/SLX-27481_100.tsv
+	config/SLX-27482.tsv
+	config/SLX-27483.tsv
+	config/SLX-27484.tsv
+	config/SLX-27545.tsv
+	config/SLX-27546.tsv
+	config/SLX-27548.tsv
+	config/SLX-27548_100.tsv
+	config/SLX-27548_modified_100.tsv
+	config/SLX-27559.tsv
+	config/SLX-27559_Plate_537_SINCEL-329.tsv
+	config/SLX-27559_Plate_537_SINCEL-330.tsv
+	config/SLX-27559_Plate_538.tsv
+	config/SLX-27559_Plate_538_SINCEL-329.tsv
+	config/SLX-27559_Plate_538_SINCEL-330.tsv
+	config/SLX-27641.tsv
+	config/SLX-27641_100.tsv
+	config/SLX-27642.tsv
+	config/SLX-27642_100.tsv
+	config/SLX-27643.tsv
+	config/SLX-27643_100.tsv
+	config/SLX-27644.tsv
+	config/SLX-27644_100.tsv
+	config/SLX-27645.tsv
+	config/SLX-27645_original.tsv
+	config/SLX-27721-original.tsv
+	config/SLX-27721.tsv
+	config/SLX-27722.tsv
+	config/SLX-27723.tsv
+	config/SLX-27724.tsv
+	config/SLX-27724_100.tsv
+	config/SLX-27724_original.tsv
+	config/SLX-27841.tsv
+
+nothing added to commit but untracked files present (use "git add" to track)
+config/SLX-*.original
+config/config.yaml_*
+.vscode/
+SLX-*/
+workflow/scripts/test_qc.R
