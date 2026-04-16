@@ -1,7 +1,7 @@
-samples: config/PEO1_subset.tsv #sample_PEO4.tsv sample_PEO1.tsv
+samples: config/SLX-27723.tsv #sample_PEO4.tsv sample_PEO1.tsv
 ##samples: config/samples_trial_human.tsv ##config/samples_trial_mouse.tsv
-sampleName: PEO1_subset # PEO4/1 Trial_Human
-binSize: 500 ## single value only - see documentation for valid bin size values
+sampleName: SLX-27723 # PEO4/1 Trial_Human
+binSize: 100 ## single value only - see documentation for valid bin size values
 species: Human ##Mouse
 genome: hg19 ##GRCm38 (we do not recommend using Human hg38, as the QC has not been optimized for this genome build, due to limited data availability
 estimateReadDensity : False # flag to include read density estimation for detection of WGD

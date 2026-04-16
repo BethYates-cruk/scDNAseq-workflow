@@ -1,0 +1,1 @@
+default-resources: [cpus=1, mem=64G, runtime=1440, slurm_account='fmlab', slurm_partition='epyc'] 
