@@ -25,12 +25,14 @@ rule scale_scAbsolute:
         type conda
         set -eu
         export RETICULATE_PYTHON=/opt/conda/envs/conda_runtime/bin/python
+        export TF_NUM_INTRAOP_THREADS=2
+        export TF_NUM_INTEROP_THREADS=1
         export MKL_THREADING_LAYER=sequential
         export OMP_NUM_THREADS=2
         type python
-        python -c "import tensorflow; import numpy; import pandas;"
+        python -c "import numpy; import pandas;"
         Rscript -e "library(reticulate); reticulate::py_discover_config();"
-        if [ "{params.minPloidy}" -eq "NULL" ]; then
+        if [ "{params.minPloidy}" = "NULL" ]; then
             Rscript --vanilla "workflow/scripts/run_scAbsolute.R" "{config[species]}" \
                                                                   "{config[genome]}" \
                                                                   "{params.prefix}" \
@@ -49,4 +51,5 @@ rule scale_scAbsolute:
                                                                   "{params.minPloidy}" \
                                                                   "{params.maxPloidy}" || true
         fi
+        set -e
         """

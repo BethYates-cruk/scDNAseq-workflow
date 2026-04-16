@@ -55,7 +55,7 @@ if (interactive()){
 # PACKAGE DEPENDENCIES
 library(reticulate, quietly=TRUE, warn.conflicts = FALSE)
 library(future.apply, quietly=TRUE, warn.conflicts = FALSE)
-suppressWarnings(plan(multiprocess))
+suppressWarnings(plan(multisession))
 library(QDNAseq, quietly = TRUE, warn.conflicts = FALSE)
 
 library(tidyverse, quietly=TRUE, warn.conflicts = FALSE)

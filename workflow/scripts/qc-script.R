@@ -5,10 +5,11 @@
 # NOTE: by default, datasets are split by UID and SLX variable,
 # so it is important to set these two variables in the df data frame
 # we throw an error below if this hasn't happened
-
+#options(warn=1)
 ## Variables ####
 args = commandArgs(trailingOnly=TRUE)
 set.seed(2020)
+
 
 if (interactive()){
   rm(list=ls())
@@ -16,10 +17,11 @@ if (interactive()){
   sampleFile = c(
     #"~/scDNAseq-workflow/results/500/PEO1_500.rds",
     #"~/scDNAseq-workflow/results/500/PEO4_500.rds"
-    "~/scDNAseq-workflow/results/500/PEO1_subset_500.rds",
-    
+    "/mnt/scratchc/fmlab/yates02/Pipelines/scDNAseq-workflow/results/100/SLX-27645_100.rds"
+    #"/mnt/scratchc/fmlab/darvis01/scDNAseq-workflow/results/100/SLX-24174_100.rds"
   )
-  sampleName = "PEO1_subset"
+  #sampleName = "SLX-24174"
+  sampleName = "SLX-27645"
   #sampleName = "PEO1-PEO4"
   
 }else{
@@ -29,9 +31,9 @@ if (interactive()){
 sampleFile = do.call("c", (base::strsplit(sampleFile, split=",")))
 
 ## Setup ====
-BASEDIR="~/"
+BASEDIR="~/Pipelines"
 BASEDIR=normalizePath(BASEDIR)
-WORKFLOW_PATH="~/scDNAseq-workflow/"
+WORKFLOW_PATH="/mnt/scratchc/fmlab/yates02/Pipelines/scDNAseq-workflow/"
 require(QDNAseq, quietly = TRUE, warn.conflicts = FALSE)
 require(ggbeeswarm, quietly = TRUE, warn.conflicts = FALSE)
 require(ggpubr, quietly = TRUE, warn.conflicts = FALSE)
@@ -79,18 +81,18 @@ print(paste0("ISSUES: ", base::union(issue_coverage, issue_manual)))
 # PARAMETERS ====
 # see source for description
 # replicating
-cutoff_replicating = 1.50
-cutoff_replicating_iqr = 1.5
+# PIPELINE_ENV_VAR_PATCHED
+cutoff_replicating = as.numeric(Sys.getenv('QC_CUTOFF_REPLICATING', '1.50'))
+cutoff_replicating_iqr = as.numeric(Sys.getenv('QC_CUTOFF_REPLICATING_IQR', '1.5'))
 cutoff_replicating_hard = NULL
-# MAPD
-mapd_cutoff = 2.0
+mapd_cutoff = as.numeric(Sys.getenv('QC_MAPD_CUTOFF', '2.0'))
 mapd_density_control = FALSE
-# Gini
-gini_norm_cutoff = 2.00
+gini_norm_cutoff = as.numeric(Sys.getenv('QC_GINI_NORM_CUTOFF', '2.00'))
 gini_density_control = FALSE
-# alpha
-alpha_cutoff = 1.5
-alpha_hard_cutoff = 0.05 # 0.05: about 99 percentile of data for 500 kb
+alpha_cutoff = as.numeric(Sys.getenv('QC_ALPHA_CUTOFF', '1.5'))
+alpha_hard_cutoff = as.numeric(Sys.getenv('QC_ALPHA_HARD_CUTOFF', '0.05'))
+# MAPD
+# Gini
 print(paste0("Number of cells: ", dim(object)[[2]]))
 
 ## Identify replicating and outlier cells ====
