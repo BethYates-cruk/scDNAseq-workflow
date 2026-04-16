@@ -162,6 +162,7 @@ dmypy.json
 # Data and Results
 ./data/*
 ./results/*
+./results/100/*
 
 # Run on Cluster
 run_slurm.sh
