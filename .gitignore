@@ -236,3 +236,4 @@ config/config.yaml_*
 .vscode/
 SLX-*/
 workflow/scripts/test_qc.R
+config/SLX-*.txt
