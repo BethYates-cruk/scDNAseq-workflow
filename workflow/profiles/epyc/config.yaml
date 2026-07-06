@@ -1,1 +1,3 @@
-default-resources: [cpus=1, mem=16G, runtime=300, slurm_account='fmlab', slurm_partition='epyc'] 
+# clust1-epyc-2 excluded due to persistent LDAP lookup failure for yates02
+# Remove when IT resolve the issue
+default-resources: [cpus=1, mem=16G, runtime=300, slurm_account='fmlab', slurm_partition='epyc', slurm_extra="'--exclude=clust1-epyc-2'"]
