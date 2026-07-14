@@ -150,6 +150,8 @@ stopifnot(all(file.exists(filePaths)))
 
 
 ## run the core algorithm - using scAbsolute wrapper function
+tryCatch({
+
 scaledCN = scAbsolute(filePaths, method=method, globalModel=globalModel, binSize=binSize, species=species, genome=genome,
            minLength=minLength, batchSize=1, testStatistic=testStatistic, limitPloidy=limitPloidy,
            minPloidy=minPloidy, maxPloidy=maxPloidy, ploidyWindow=ploidyWindow, ploidyRegion=ploidyRegion, selectRegion=selectRegion,
@@ -177,20 +179,55 @@ scaledCN = scAbsolute(filePaths, method=method, globalModel=globalModel, binSize
 
 ## store metadata ====
 
-# NOTE add whole genome values (in case of restricted ploidy calculation via ploidyRegion)
-scaledCN = computeRPC(scaledCN, rpc_value="rpc.all", ploidy_value="ploidy.all")
+# Check for failed cells (rpc=0, failure_reason set) - skip QC metrics for these
+cell_passed = pData(scaledCN)$rpc > 0.0
 
-# compute gini coefficient (quality control)
-scaledCN = computeGini(scaledCN)
+if(any(cell_passed)){
+  # NOTE add whole genome values (in case of restricted ploidy calculation via ploidyRegion)
+  scaledCN = computeRPC(scaledCN, rpc_value="rpc.all", ploidy_value="ploidy.all")
 
-# compute MAPD coefficient (quality control)
-scaledCN = computeMAPD(scaledCN)
+  # compute gini coefficient (quality control)
+  scaledCN = computeGini(scaledCN)
 
-# compute information theoretic measures (quality control)
-scaledCN = computeInfotheo(scaledCN)
+  # compute MAPD coefficient (quality control)
+  scaledCN = computeMAPD(scaledCN)
+
+  # compute information theoretic measures (quality control)
+  scaledCN = computeInfotheo(scaledCN)
+} else {
+  # Add NA placeholders so pData columns match those of successfully processed cells.
+  # Without this, merge.R's combineQDNASets call fails with "inconsistent metadata"
+  # because failed cells are missing the QC columns added above.
+  pd = Biobase::pData(scaledCN)
+  pd[["rpc.old"]]          <- NA_real_
+  pd[["rpc.all"]]          <- NA_real_
+  pd[["ploidy.all"]]       <- NA_real_
+  pd[["gini"]]             <- NA_real_
+  pd[["gini_normalized"]]  <- NA_real_
+  pd[["mapd"]]             <- NA_real_
+  if(!is.null(Biobase::featureData(scaledCN)[["replicationTiming"]])){
+    pd[["cellcycle.cmi_xy"]]  <- NA_real_
+    pd[["cellcycle.cmi_yrT"]] <- NA_real_
+    pd[["mi.cmi_yGC"]]        <- NA_real_
+    pd[["mi.yGC"]]            <- NA_real_
+    pd[["mi.cmi_xy"]]         <- NA_real_
+    pd[["mi.xy"]]             <- NA_real_
+    pd[["mi.xm"]]             <- NA_real_
+  }
+  Biobase::pData(scaledCN) <- pd
+}
+
+if(any(!cell_passed)){
+  failed_names = pData(scaledCN)$name[!cell_passed]
+  reasons = pData(scaledCN)$failure_reason[!cell_passed]
+  for(i in seq_along(failed_names)){
+    warning(paste0("Skipping QC metrics for failed cell: ", failed_names[i],
+                   " (failure_reason=", reasons[i], ")"))
+  }
+}
 
 # add protocol data for WGD detection
-if(addReadPosition){
+if(addReadPosition && any(cell_passed)){
   scaledCN = readPosition(scaledCN, filePaths)
 }
 
@@ -240,14 +277,35 @@ flagstat_description = readFlagstat(filePaths)
 ## Join descriptive data
 if(!is.null(flagstat_description)){
   flagstat_description$name = as.character(flagstat_description$name)
+  # GUARD: flagstat must be 1 row per cell; a duplicate `name` would multiply
+  # rows in the join and break alignment with the assayData columns.
+  stopifnot(!any(duplicated(flagstat_description$name)))
   description = dplyr::left_join(description, flagstat_description, by="name")
-  rownames(description) = sample_names
+  # dplyr::left_join DROPS rownames (returns integer rownames). Restore by the
+  # identity column `name` (rides WITH each row through any reorder), not by the
+  # detached positional vector `sample_names`. Then assert the row count is
+  # unchanged so a silent corruption becomes a loud, local failure here rather
+  # than a confusing sampleNames-differ crash later in combineQDNASets.
+  stopifnot(nrow(description) == length(sample_names))
+  rownames(description) = description$name
 }
 pData(scaledCN) = description
+
+# Invariant: pData rownames MUST equal assayData colnames, else this object is
+# the corrupt state that merge.R would otherwise have to repair downstream.
+stopifnot(identical(rownames(pData(scaledCN)),
+                    colnames(Biobase::assayDataElement(scaledCN, "copynumber"))))
 
 ## Save data for later processing
 if(!dir.exists(dirname(RESULTPATH))) dir.create(dirname(RESULTPATH), recursive = TRUE)
 saveRDS(scaledCN, file=RESULTPATH)
+
+}, error = function(e) {
+  warning(paste0("scAbsolute hard failure: ", conditionMessage(e)))
+  # Create a zero-byte file so Snakemake's output requirement is satisfied.
+  # merge.R's empty-file check will remove it and record it as "process_crash".
+  file.create(RESULTPATH)
+})
 
 ## Reproducibility info
 devtools::session_info()

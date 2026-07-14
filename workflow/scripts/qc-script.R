@@ -34,7 +34,7 @@ sampleFile = do.call("c", (base::strsplit(sampleFile, split=",")))
 BASEDIR="~/Pipelines"
 BASEDIR=normalizePath(BASEDIR)
 # PIPELINE_WORKFLOW_PATH_PATCHED
-WORKFLOW_PATH=Sys.getenv("WORKFLOW_PATH", "/mnt/scratche/fast/fmlab/yates02/Pipelines/scDNAseq-workflow/")
+WORKFLOW_PATH = Sys.getenv("WORKFLOW_PATH", if (interactive()) "~/scDNAseq-workflow/" else normalizePath(getwd()))
 require(QDNAseq, quietly = TRUE, warn.conflicts = FALSE)
 require(ggbeeswarm, quietly = TRUE, warn.conflicts = FALSE)
 require(ggpubr, quietly = TRUE, warn.conflicts = FALSE)
@@ -208,4 +208,4 @@ ggplot(data = df %>% dplyr::filter(keep)) + geom_histogram(aes(x=ploidy), bins=5
 print("Writing to file.")
 ifelse(!dir.exists(file.path(WORKFLOW_PATH, "results/pass_qc/")), dir.create(file.path(WORKFLOW_PATH, "results/pass_qc/")), FALSE)
 readr::write_tsv(df %>% dplyr::filter(keep) %>% dplyr::arrange(name) %>% dplyr::select(UID, SLX, name),
-                 file=paste0(WORKFLOW_PATH, "results/pass_qc/pass_", sampleName, ".tsv"), append = FALSE, col_names=FALSE)
+                 file=file.path(WORKFLOW_PATH, "results", "pass_qc", paste0("pass_", sampleName, ".tsv")), append = FALSE, col_names=FALSE)
