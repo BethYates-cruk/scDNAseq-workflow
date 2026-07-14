@@ -33,7 +33,8 @@ sampleFile = do.call("c", (base::strsplit(sampleFile, split=",")))
 ## Setup ====
 BASEDIR="~/Pipelines"
 BASEDIR=normalizePath(BASEDIR)
-WORKFLOW_PATH="/mnt/scratchc/fmlab/yates02/Pipelines/scDNAseq-workflow/"
+# PIPELINE_WORKFLOW_PATH_PATCHED
+WORKFLOW_PATH=Sys.getenv("WORKFLOW_PATH", "/mnt/scratche/fast/fmlab/yates02/Pipelines/scDNAseq-workflow/")
 require(QDNAseq, quietly = TRUE, warn.conflicts = FALSE)
 require(ggbeeswarm, quietly = TRUE, warn.conflicts = FALSE)
 require(ggpubr, quietly = TRUE, warn.conflicts = FALSE)
