@@ -74,6 +74,16 @@ exclude_cells = base::union(issue_coverage, issue_manual)
 stopifnot(all(is.character(exclude_cells)))
 include = setdiff(colnames(object), exclude_cells)
 
+# WORKAROUND for upstream scAbsolute bug (scAbsolute/R/scAbsolute.R:724,
+# inside `if(debug){...}`): protocolData(segCN) is set from the full
+# per-candidate scaling-solution search table, not one row per cell, so
+# protocolData ends up with far more rows than there are cells. Reset it
+# to an empty, correctly-sized AnnotatedDataFrame before subsetting so
+# Biobase's internal consistency check doesn't fail on the row-count
+# mismatch. Remove this once the upstream fix lands (pending Shadi's
+# input - not our call to make in scAbsolute's code).
+Biobase::protocolData(object) <- new("AnnotatedDataFrame",
+  data = data.frame(row.names = colnames(object)))
 object = object[, include]
 df = df %>% dplyr::filter(!(name %in% base::union(issue_coverage, issue_manual)))
 stopifnot(dim(df)[[1]] == dim(object)[[2]])
