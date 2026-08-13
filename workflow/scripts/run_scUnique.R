@@ -157,7 +157,19 @@ if(length(include_cells)==0){
 }
 # we generally don't trust Y and X chromosome calls for rCNA analysis
 include_chr = !(startsWith(rownames(CN), "Y:"))
-object = CN[include_chr, include_cells]
+# PIPELINE_PROTOCOLDATA_RESET_PATCHED
+# WORKAROUND for readPosition()/combineQDNASets() protocolData
+# corruption (scAbsolute/R/core.R) when estimateReadDensity=TRUE —
+# protocolData ends up with millions of rows instead of one per cell.
+# Same class of issue as scAbsolute.R:724's debug-mode corruption,
+# already worked around identically in qc-script.R (lines 77-86).
+# Reset on a throwaway copy, not CN itself, since CN is saveRDS'd
+# verbatim later as .rawCN.RDS and Fig5_mut_processes.R reads
+# protocolData from that file directly.
+CN_for_subset <- CN
+Biobase::protocolData(CN_for_subset) <- new("AnnotatedDataFrame",
+  data = data.frame(row.names = colnames(CN_for_subset)))
+object = CN_for_subset[include_chr, include_cells]
 print(paste0("Total number of cells: ", dim(object)[2]))
 print(paste0("Total number of included cells: ", length(include_cells), " (", format(round(length(include_cells)/(dim(CN)[2]), 3), nsmall = 2), ")"))
 stopifnot(all((Biobase::pData(object)[["rpc"]] > 0 & Biobase::pData(object)[["hmm.alpha"]] > 0)))
@@ -376,6 +388,16 @@ saveRDS(df_rcna_post, file=file.path(RESULTPATH, FILENAME, paste0(FILENAME, ".df
 saveRDS(df_rejected, file=file.path(RESULTPATH, FILENAME, paste0(FILENAME, ".df_rejected.RDS")))
 saveRDS(n_events, file=file.path(RESULTPATH, FILENAME, paste0(FILENAME, ".n_events.RDS")))
 saveRDS(results, file=file.path(RESULTPATH, FILENAME, paste0(FILENAME, ".medicc_results.RDS")))
+
+# PIPELINE_CN_RDATA_RESET_PATCHED
+# CN still carries the original (pre-reset) protocolData at this
+# point - deliberately preserved up to here so saveRDS(CN, ...) above
+# (.rawCN.RDS) keeps the real density data for downstream consumers
+# (e.g. Fig5_mut_processes.R). save.image() below persists the entire
+# workspace, though, so without this the stale/corrupted CN would also
+# land in .RData under the literal name "CN" - a footgun for anyone
+# loading it later and expecting a valid object.
+CN <- CN_for_subset
 
 save.image(file.path(RESULTPATH, FILENAME, paste0(FILENAME, ".RData")))
 ##########################################################

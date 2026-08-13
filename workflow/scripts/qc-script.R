@@ -70,7 +70,18 @@ if(any(Biobase::pData(object)[["rpc"]] < 25)){
 
 # manually add cells that should be excluded
 issue_manual = c()
-exclude_cells = base::union(issue_coverage, issue_manual)
+# PIPELINE_RPC_ZERO_EXCLUSION_PATCHED
+# WORKAROUND: predict_replicating() (scAbsolute/R/core.R) crashes
+# on NaN cellcycle.cmi_yrT, which occurs for cells with rpc == 0
+# (degenerate copy-number signal breaks computeInfotheo()'s
+# conditional-mutual-information calculation). issue_coverage
+# above catches most zero-rpc cells incidentally via low raw read
+# count, but not all - some zero-rpc cells have otherwise-normal
+# read counts and slip through to predict_replicating() still in
+# the dataset. Exclude rpc == 0 explicitly rather than relying on
+# that incidental overlap.
+issue_rpc_zero = df$name[df$rpc == 0]
+exclude_cells = base::union(base::union(issue_coverage, issue_manual), issue_rpc_zero)
 stopifnot(all(is.character(exclude_cells)))
 include = setdiff(colnames(object), exclude_cells)
 
@@ -85,9 +96,9 @@ include = setdiff(colnames(object), exclude_cells)
 Biobase::protocolData(object) <- new("AnnotatedDataFrame",
   data = data.frame(row.names = colnames(object)))
 object = object[, include]
-df = df %>% dplyr::filter(!(name %in% base::union(issue_coverage, issue_manual)))
+df = df %>% dplyr::filter(!(name %in% base::union(base::union(issue_coverage, issue_manual), issue_rpc_zero)))
 stopifnot(dim(df)[[1]] == dim(object)[[2]])
-print(paste0("ISSUES: ", base::union(issue_coverage, issue_manual)))
+print(paste0("ISSUES: ", base::union(base::union(issue_coverage, issue_manual), issue_rpc_zero)))
 
 # PARAMETERS ====
 # see source for description
